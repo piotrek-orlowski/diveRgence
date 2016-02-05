@@ -26,7 +26,7 @@
 
 rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, intradaySeasonFun = function(x) 1 , ...){
   
-  eval(parse(text = paste0("fooBase <- affinesim:::",fooStr,"Base")))
+  eval(parse(text = paste0("fooBase <- diveRgence:::",fooStr,"Base")))
   
   # Adjustment for careless coders
   if(hasArg(data)){ rdata <- data }

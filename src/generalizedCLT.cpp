@@ -2,10 +2,11 @@
 //#include <Rcpp.h>
 #include <RcppArmadillo.h>
 
-  
 using namespace std;
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
+//'@useDynLib diveRgence
+//'@export
 // [[Rcpp::export]]
 arma::vec mcCltInference(arma::vec& rdivDerivX, arma::vec& rdivDerivZ, double rdivCont, arma::vec& spotVolPlus, arma::vec& spotVolMinus, int nSampl){
   
