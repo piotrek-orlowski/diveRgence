@@ -68,8 +68,6 @@ Rcpp::NumericVector resizeNV_withAttributes(Rcpp::NumericVector vec1, Rcpp::Nume
 // `lasttick' method. It handles multiple days and aggregation is done on a
 // within-day basis.
 
-
-// Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string period_, int numPeriods_, std::string dayStart_, std::string dayEnd_){
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string period_, int numPeriods_, Rcpp::NumericVector dayStart_, Rcpp::NumericVector dayEnd_){
