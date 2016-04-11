@@ -4,65 +4,10 @@
 #include <boost\date_time\posix_time\posix_time.hpp>
 #include <boost\date_time\posix_time\conversion.hpp>
 #include <boost\date_time\gregorian\gregorian.hpp>
+#include "..\inst\include\attribute_manipulators.h"
 using namespace Rcpp;
 
 // [[Rcpp::depends(BH)]]
-
-//' @export
-// [[Rcpp::export]]
-Rcpp::NumericVector createXts(std::vector<double> values_, std::vector<double> stamps_) {
-  
-  Rcpp::NumericVector values(values_.begin(), values_.end());
-  Rcpp::NumericVector stamps(stamps_.begin(), stamps_.end());
-  
-  stamps.attr("tzone")    = "UTC";         // the index has attributes
-  CharacterVector tclass = Rcpp::CharacterVector::create("POSIXct","POSIXt");
-  stamps.attr("tclass")   = tclass;
-  
-  values.attr("dim") = Rcpp::IntegerVector::create(values.size(),1);
-  values.attr("index") = stamps;
-  CharacterVector klass  = Rcpp::CharacterVector::create("xts", "zoo");
-  values.attr("class")       = klass;
-  values.attr(".indexCLASS") = tclass;
-  values.attr("tclass")      = tclass;
-  values.attr(".indexTZ")    = "UTC";
-  values.attr("tzone")       = "UTC";
-  
-  return values;
-}
-
-//' @export
-// [[Rcpp::export]]
-Rcpp::NumericVector resizeNV_withAttributes(Rcpp::NumericVector vec1, Rcpp::NumericVector vec2){
-
-  std::vector<double> outVec_std;
-  for(Rcpp::NumericVector::iterator it = vec1.begin(); it != vec1.end(); ++it){
-    outVec_std.push_back(*it);
-  }
-  for(Rcpp::NumericVector::iterator it = vec2.begin(); it != vec2.end(); ++it){
-    outVec_std.push_back(*it);
-  }
-  // Rcpp::NumericVector outVec(outVec_std.begin(), outVec_std.end());
-
-  std::vector<double> index_std;
-  if(vec1.size() > 0){
-    Rcpp::NumericVector index_vec1 = vec1.attr("index");  
-    for(Rcpp::NumericVector::iterator it =index_vec1.begin(); it != index_vec1.end(); ++it){
-      index_std.push_back(*it);
-    }
-  }
-  
-  if(vec2.size() > 0){
-    Rcpp::NumericVector index_vec2 = vec2.attr("index");
-    for(Rcpp::NumericVector::iterator it = index_vec2.begin(); it != index_vec2.end(); ++it){
-      index_std.push_back(*it);
-    }  
-  }
-  
-  Rcpp::NumericVector outVec = createXts(outVec_std, index_std);
-  
-  return outVec;
-}
 
 // This function aggregates an xts R time series to a given frequency by the 
 // `lasttick' method. It handles multiple days and aggregation is done on a
@@ -71,9 +16,6 @@ Rcpp::NumericVector resizeNV_withAttributes(Rcpp::NumericVector vec1, Rcpp::Nume
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string period_, int numPeriods_, Rcpp::NumericVector dayStart_, Rcpp::NumericVector dayEnd_){
-  
-  // define POSIX epoch time
-  static boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
   
   // Check for rdata being an xts object with POSIX time
   
@@ -89,23 +31,17 @@ Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string pe
   
   for(int kk = 0; kk < rdataIndex.size(); kk++){
     rdataIndex[kk] = boost::posix_time::from_time_t(rdataIndex_rcpp[kk]);
-    // Rcout << rdataIndex[kk] << "\n";
   }
   
   // get unique dates: first define a set, insert all into set, this will automatically get rid of redundant elements
   std::set<boost::gregorian::date> stripDates_set;
-  std::vector<boost::gregorian::date> stripDates_big;
   for(std::vector<boost::posix_time::ptime>::iterator it = rdataIndex.begin(); it != rdataIndex.end(); ++it){
     stripDates_set.insert(it->date());
-    stripDates_big.push_back(it->date());
   }
   
   std::vector<boost::gregorian::date> stripDates;
   stripDates.assign(stripDates_set.begin(), stripDates_set.end());
-  // for(int kk = 0; kk < stripDates.size(); kk++){
-    // Rcout << stripDates[kk] << "\n";
-  // }
-  
+ 
   // loop over stripDates; for each date subset rdata for the requisite day,
   // find the starting and ending time values in the day, create limiting times
   // from dayStart_ and dayEnd_ and check if they're not too far from the day's
@@ -123,18 +59,12 @@ Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string pe
     boost::posix_time::ptime locDayStart_posix(*it,boost::posix_time::time_duration(dayStart_[0],dayStart_[1],dayStart_[2]));
     boost::posix_time::ptime locDayEnd_posix(*it,boost::posix_time::time_duration(dayEnd_[0],dayEnd_[1],dayEnd_[2]));
     
-    // Rcout << "LocDayStart " << locDayStart_posix << "\n"; 
-    // Rcout << "LocDayEnd " << locDayEnd_posix << "\n"; 
-    
     time_t locDayStart_seconds = boost::posix_time::to_time_t(locDayStart_posix);
     time_t locDayEnd_seconds = boost::posix_time::to_time_t(locDayEnd_posix);
     
     // get first and last time stamp of day of data
     time_t trueDayStart_seconds = *rdataSubIndex_rcpp.begin();
     time_t trueDayEnd_seconds = rdataSubIndex_rcpp[rdataSubIndex_rcpp.size()-1];
-    
-    // Rcout << "TrueDayStart " << boost::posix_time::from_time_t(trueDayStart_seconds) << "\n"; 
-    // Rcout << "TrueDayEnd " << boost::posix_time::from_time_t(trueDayEnd_seconds) << "\n"; 
     
     // compare with required timestamps and choose what's reasonable
     trueDayStart_seconds = std::max(trueDayStart_seconds, locDayStart_seconds);
@@ -147,25 +77,17 @@ Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string pe
     std::vector<double> rdataSubIndex(rdataSubIndex_rcpp.begin(), rdataSubIndex_rcpp.end());
     
     std::vector<double> rdataSub(rdataSub_rcpp.begin(), rdataSub_rcpp.end());
-//     
-//     Rcout << "rdataSub vector \n"; 
-//     for(std::vector<double>::iterator it = rdataSub.begin(); it != rdataSub.end(); it++){
-//       Rcout << *it << "\n";
-//     }
     
     // make aggregation grid
     int gridStep = 0;
     if(!period_.compare(std::string("seconds"))){
       gridStep = numPeriods_;
-    // } else if(period_ == "minutes"){
     } else if(!period_.compare(std::string("minutes"))){
       gridStep = numPeriods_ * 60L;
-    // } else if(period_ == "hours"){
     } else if(!period_.compare(std::string("hours"))){
       gridStep = numPeriods_ * 3600L;
     }
-    // Rcout << "TrueDayStart " << boost::posix_time::from_time_t(trueDayStart_seconds) << "\n"; 
-    // Rcout << "TrueDayEnd " << boost::posix_time::from_time_t(trueDayEnd_seconds) << "\n"; 
+    
     int numSteps = (trueDayEnd_seconds - trueDayStart_seconds) / gridStep;
     
     std::vector<double> timeStamps(2+numSteps);
@@ -174,6 +96,7 @@ Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string pe
     for(int kk = 1; kk < numSteps+1; kk++){
       timeStamps[kk] = trueDayStart_seconds + kk * gridStep;
     }
+    // Remove last stamp if equal to penultimate stamp
     if(timeStamps.back() == timeStamps[timeStamps.size()-2]){
       timeStamps.pop_back();
     }
@@ -184,8 +107,7 @@ Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string pe
     // loop over the grid from the end and always find the latest value in date vector, pick corresponding price value
     for(std::vector<double>::reverse_iterator bck = timeStamps.rbegin(); bck != timeStamps.rend(); ++bck){
       double locTimeStamp = *bck;
-      // Rcout << "Last el of rdataSubIndex " << rdataSubIndex.back() << "\n";
-      // Rcout << "LocTimeStamp " << locTimeStamp << "\n";
+      
       while(rdataSubIndex.back() > locTimeStamp){
         rdataSubIndex.pop_back();
         rdataSub.pop_back();
@@ -203,7 +125,6 @@ Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string pe
     
     // Resize result, bind
     resultVec = resizeNV_withAttributes(resultVec, resultLoc);
-    // resultVec = resultLoc;
   }
   
   return resultVec;
