@@ -62,7 +62,7 @@ uDivFoo <- function(p, tsMat){
     res <- res - cnst.2*(exp(tsMat) - 1)
   }
   res <- exp(p*z)*res
-  res <- rxsumCpp(res)
+  res <- sum(res)
   return(res)
 }
 
@@ -78,7 +78,7 @@ rUDivBaseDeriv <- function(p, tsMat, .sum = FALSE){
   }
   res <- exp(p*z)*res
   if(.sum){
-    res <- rxsumCpp(res)  
+    res <- sum(res)  
   }
   return(res)
 }
@@ -96,7 +96,7 @@ rUDivBaseZDeriv <- function(p, tsMat, .sum = FALSE){
     res <- res - cnst.2*(exp(tsMat) - 1)
   }
   res <- p*exp(p*z)*res
-  res <- rxsumCpp(res)
+  res <- sum(res)
   return(res)
 }
 
@@ -112,7 +112,7 @@ rUDivBaseContPart <- function(p, tsMat, .sum = TRUE){
   if(!.sum){
     return(res)
   } else {
-    return(rxsumCpp(res))
+    return(sum(res))
   }
   
 }

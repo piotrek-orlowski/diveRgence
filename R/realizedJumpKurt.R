@@ -63,7 +63,7 @@ divKurtFoo <- function(p, tsMat){
     sm.tsMat <- which(abs(tsMat) < 1e-3)
     res[sm.tsMat] <- tsMat[sm.tsMat]^4/12 + tsMat[sm.tsMat]^5/60*(1+3*p)
   }
-  res <- rxsumCpp(res)
+  res <- sum(res)
   return(res)
 }
 
@@ -77,7 +77,7 @@ rJKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
     res <- -2*cnst.1*exp(tsMat) + 2*cnst.1*exp(p*tsMat) + cnst.1*exp(p*tsMat)*tsMat*(2 - 2*p) + cnst.1*exp(p*tsMat)*tsMat^2*(1-2*p+p^2)
   }
   if(.sum){
-    res <- rxsumCpp(res)  
+    res <- sum(res)  
   }
   return(res)
 }
@@ -266,7 +266,7 @@ rJKurtBaseContPart <- function(p, tsMat, .sum = TRUE){
 #   
 #   # multiply, sum, look what gets
 #   spot.var <- matrix(as.numeric(spot.var), nrow = nrow(spot.var), ncol = ncol(div.deriv.sq))
-#   result <- apply(spot.var*div.deriv.sq, 2, rxsumCpp)
+#   result <- apply(spot.var*div.deriv.sq, 2, sum)
 #   
 #   return(result)
 # }

@@ -66,7 +66,7 @@ spotVolBaseContinuous <- function(spot.point, rdata, align.by, align.period, mak
   # Calculate estimator
   time.kernel <- expDoubleKernel(x0 = spot.point, cnv.data = index(rdata), delta.bandwidth = delta.bandwidth)
   time.kernel <- time.kernel / sum(time.kernel * delta.bar)
-  result <- rxsumCpp(time.kernel * rdata^2* delta.bar)
+  result <- sum(time.kernel * rdata^2* delta.bar)
   result <- result / (delta.bar * 1/365 * 1/T.range)
   
     result <- xts(x = result, order.by = spot.point)
@@ -110,9 +110,9 @@ spotVolBaseJump <- function(spot.point, rdata, align.by, align.period, makeRetur
   time.kernel.plus <- time.kernel * as.numeric(index(rdata) >= spot.point)
   time.kernel.minus <- time.kernel.minus / sum(time.kernel.minus)
   time.kernel.plus <- time.kernel.plus / sum(time.kernel.plus)
-  result.minus <- rxsumCpp(time.kernel.minus * as.numeric(rdata)^2 * as.numeric((abs(as.numeric(rdata)) < (3 * sqrt(as.numeric(avg.vol)*intradaySeasonFun(time.stamp)) * delta.bar.years^0.49))))
-  result.plus <- rxsumCpp(time.kernel.plus * as.numeric(rdata)^2 * as.numeric((abs(as.numeric(rdata)) < (3 * sqrt(as.numeric(avg.vol)*intradaySeasonFun(time.stamp)) * delta.bar.years^0.49))))
-  # result <- rxsumCpp(time.kernel* delta.bar * abs(as.numeric(head(rdata,-1))) * abs(as.numeric(tail(rdata,-1))) * pi/2)
+  result.minus <- sum(time.kernel.minus * as.numeric(rdata)^2 * as.numeric((abs(as.numeric(rdata)) < (3 * sqrt(as.numeric(avg.vol)*intradaySeasonFun(time.stamp)) * delta.bar.years^0.49))))
+  result.plus <- sum(time.kernel.plus * as.numeric(rdata)^2 * as.numeric((abs(as.numeric(rdata)) < (3 * sqrt(as.numeric(avg.vol)*intradaySeasonFun(time.stamp)) * delta.bar.years^0.49))))
+  # result <- sum(time.kernel* delta.bar * abs(as.numeric(head(rdata,-1))) * abs(as.numeric(tail(rdata,-1))) * pi/2)
   result.plus <- result.plus / (delta.bar * 1/365 * 1/86400) 
   result.minus <- result.minus / (delta.bar * 1/365 * 1/86400)
   
@@ -152,7 +152,7 @@ spotVolBaseNoise <- function(spot.point, rdata, nbar, align.by, align.period, ma
   # Calculate estimator
   time.kernel <- expDoubleKernel(x0 = spot.point, cnv.data = index(rdata), delta.bandwidth = delta.bandwidth)
   time.kernel <- time.kernel / sum(time.kernel * delta.bar)
-  result <- 1/nbar * rxsumCpp(time.kernel * (rdata.nbar^2-rdata^2) * delta.bar)
+  result <- 1/nbar * sum(time.kernel * (rdata.nbar^2-rdata^2) * delta.bar)
   result <- result / (delta.bar * 1/365 * 1/T.range)
   
   result <- xts(x = result, order.by = spot.point)

@@ -213,7 +213,7 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, intradaySeasonFun, refer
   # For the continuous part 
   div.cont.part <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseContPart, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) <= 3 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.49))
   
-  div.cont.part <- rxsumCpp(div.cont.part)
+  div.cont.part <- sum(div.cont.part)
   
   # Monte Carlo
   test.size <- 0.05
@@ -231,7 +231,7 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, intradaySeasonFun, refer
 #   limiting.variable <- limiting.variable + U.minus * sqrt(1-K.p) * matrix(sqrt(spot.var$plus), nrow = nrow(tsMat) - 2*k, ncol = num.reps) * matrix(div.deriv, nrow = nrow(tsMat) - 2*k, ncol = num.reps)
 #   limiting.variable <- limiting.variable - U.minus * sqrt(K.p) * matrix(div.deriv.z, nrow = nrow(tsMat) - 2*k, ncol = num.reps)
 #   rm(U.minus, K.p)
-#   limiting.variable <- apply(X = limiting.variable, MARGIN = 2, FUN = rxsumCpp)
+#   limiting.variable <- apply(X = limiting.variable, MARGIN = 2, FUN = sum)
 #   limiting.variable <- limiting.variable + U.cont * sqrt(div.cont.part)
 #   limiting.variable <- limiting.variable * sqrt(median(time.delta))
   limiting.variable <- mcCltInference(rdivDerivX = div.deriv, rdivDerivZ = div.deriv.z, rdivCont = div.cont.part, spotVolPlus = spot.var$plus, spotVolMinus = spot.var$minus, nSampl = num.reps)
@@ -242,7 +242,7 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, intradaySeasonFun, refer
   
   # multiply, sum, look what gets
   # spot.var <- matrix(as.numeric(spot.var), nrow = nrow(spot.var), ncol = ncol(div.deriv.sq))
-  # result <- apply(spot.var*div.deriv.sq, 2, rxsumCpp)
+  # result <- apply(spot.var*div.deriv.sq, 2, sum)
   
   return(res.ci)
 }

@@ -96,7 +96,7 @@ rMPVbase <- function(rdata, r.tot, num.int, align.by, align.period, makeReturns,
   }
   
   rmpv <- rollapply(data = rdata, width = num.int, FUN = mpvFoo, r = r.loc, fill = 0)
-  rmpv <- length(rdata)/(length(rdata) - num.int + 1) * mean.dt.r * mu.scale^(-num.int) * rxsumCpp(as.numeric(rmpv))
+  rmpv <- length(rdata)/(length(rdata) - num.int + 1) * mean.dt.r * mu.scale^(-num.int) * sum(as.numeric(rmpv))
   
   return(rmpv)
 }

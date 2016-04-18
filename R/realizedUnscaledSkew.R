@@ -62,7 +62,7 @@ divUSkewFoo <- function(p, tsMat){
     # sm.tsMat <- which(abs(tsMat) < 1e-5)
     # res[sm.tsMat] <- tsMat[sm.tsMat]^3/6 + tsMat[sm.tsMat]^4/24*(1+2*p)
   }
-  res <- rxsumCpp(res)
+  res <- sum(res)
   return(res)
 }
 
@@ -77,7 +77,7 @@ rUSkewBaseDeriv <- function(p, tsMat, .sum = FALSE){
     res <- res * (exp(p*tsMat)*(-1 + tsMat*(p-1) + z * (p-1)) + exp(tsMat)*(1+z-p*z))
   }
   if(.sum){
-    res <- rxsumCpp(res)  
+    res <- sum(res)  
   }
   return(res)
 }
@@ -93,7 +93,7 @@ rUSkewBaseZDeriv <- function(p, tsMat, .sum = FALSE){
     res <- res * (-p^2*exp(tsMat)*(-1 + z * (p-1)) + (p-1)^2*(p*z-1) + exp(p*tsMat)*(1+p^2*(tsMat+z) - p*(2+tsMat+z)))
   }
   if(.sum){
-    res <- rxsumCpp(res)  
+    res <- sum(res)  
   }
   return(res)
 }
@@ -110,7 +110,7 @@ rUSkewBaseContPart <- function(p, tsMat, .sum = TRUE){
   if(!.sum){
     return(res)
   } else {
-    return(rxsumCpp(res))
+    return(sum(res))
   }
   
 }

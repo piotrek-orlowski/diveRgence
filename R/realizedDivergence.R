@@ -60,7 +60,7 @@ divFoo <- function(p, tsMat){
     res <- cnst.1 * (exp(p*tsMat) - 1)
     res <- res - cnst.2*(exp(tsMat) - 1)
   }
-  res <- rxsumCpp(res)
+  res <- sum(res)
   return(res)
 }
 
@@ -74,7 +74,7 @@ rDivBaseDeriv <- function(p, tsMat, .sum = FALSE){
     res <- cnst.1 * (exp(p*tsMat) - exp(tsMat))
   }
   if(.sum){
-    res <- rxsumCpp(res)  
+    res <- sum(res)  
   }
   return(res)
 }
@@ -97,7 +97,7 @@ rDivBaseContPart <- function(p, tsMat, .sum = TRUE){
   if(!.sum){
     return(res)
   } else {
-    return(rxsumCpp(res))
+    return(sum(res))
   }
   
 }
@@ -265,7 +265,7 @@ rDivBaseContPart <- function(p, tsMat, .sum = TRUE){
 #   
 #   # multiply, sum, look what gets
 #   spot.var <- matrix(as.numeric(spot.var), nrow = nrow(spot.var), ncol = ncol(div.deriv.sq))
-#   result <- apply(spot.var*div.deriv.sq, 2, rxsumCpp)
+#   result <- apply(spot.var*div.deriv.sq, 2, sum)
 #   
 #   # the estimator doesn't exactly yield what we need: correct with quarticity
 #   RQ <- as.numeric(rMPV(rdata = tsMat, r.tot = 4, num.int = 10, makeReturns = FALSE, align.by = NULL, align.period = NULL))

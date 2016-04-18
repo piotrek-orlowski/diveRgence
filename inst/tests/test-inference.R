@@ -4,7 +4,7 @@
 
 ### ---- SETUP ----
 library(highfrequency)
-library(affinesim)
+library(affineModelR)
 
 data(sp500)
 

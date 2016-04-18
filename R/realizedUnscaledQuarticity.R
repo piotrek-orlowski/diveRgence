@@ -63,7 +63,7 @@ divUKurtFoo <- function(p, tsMat){
     # sm.tsMat <- which(abs(tsMat) < 1e-5)
     # res[sm.tsMat] <- tsMat[sm.tsMat]^3/6 + tsMat[sm.tsMat]^4/24*(1+2*p)
   }
-  res <- rxsumCpp(res)
+  res <- sum(res)
   return(res)
 }
 
@@ -78,7 +78,7 @@ rUKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
     res <- res + exp(p*tsMat)*(2 + (-1 + p)^2*tsMat^2 + (-1 + p)*z*(-2 + (-1 + p)*z) + 2*(-1 + p)*tsMat*(-1 + (-1 + p)*z))
   }
   if(.sum){
-    res <- rxsumCpp(res)  
+    res <- sum(res)  
   }
   return(res)
 }
@@ -96,7 +96,7 @@ rUKurtBaseZDeriv <- function(p, tsMat, .sum = FALSE){
     res <- res * 1/(-1 + p)^3*exp(p*z)
   }
   if(.sum){
-    res <- rxsumCpp(res)  
+    res <- sum(res)  
   }
   return(res)
 }
@@ -113,7 +113,7 @@ rUKurtBaseContPart <- function(p, tsMat, .sum = TRUE){
   if(!.sum){
     return(res)
   } else {
-    return(rxsumCpp(res))
+    return(sum(res))
   }
   
 }

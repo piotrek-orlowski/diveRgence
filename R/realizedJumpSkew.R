@@ -63,7 +63,7 @@ divSkewFoo <- function(p, tsMat){
     sm.tsMat <- which(abs(tsMat) < 1e-5)
     res[sm.tsMat] <- tsMat[sm.tsMat]^3/6 + tsMat[sm.tsMat]^4/24*(1+2*p)
   }
-  res <- rxsumCpp(res)
+  res <- sum(res)
   return(res)
 }
 
@@ -78,7 +78,7 @@ rJSkewBaseDeriv <- function(p, tsMat, .sum = FALSE){
     res <- exp(tsMat)*cnst.1 - exp(p*tsMat)*cnst.1 + exp(p*tsMat)*tsMat*cnst.2
   }
   if(.sum){
-    res <- rxsumCpp(res)  
+    res <- sum(res)  
   }
   return(res)
 }
@@ -266,7 +266,7 @@ rJSkewBaseContPart <- function(p, tsMat, .sum = TRUE){
 #   
 #   # multiply, sum, look what gets
 #   spot.var <- matrix(as.numeric(spot.var), nrow = nrow(spot.var), ncol = ncol(div.deriv.sq))
-#   result <- apply(spot.var*div.deriv.sq, 2, rxsumCpp)
+#   result <- apply(spot.var*div.deriv.sq, 2, sum)
 #   
 #   return(result)
 # }
