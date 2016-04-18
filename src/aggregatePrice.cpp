@@ -1,3 +1,4 @@
+// [[Rcpp::depends(BH)]]
 #include <Rcpp.h>
 #include <vector>
 #include <string>
@@ -6,8 +7,6 @@
 #include <boost\date_time\gregorian\gregorian.hpp>
 #include "..\inst\include\attribute_manipulators.h"
 using namespace Rcpp;
-
-// [[Rcpp::depends(BH)]]
 
 // This function aggregates an xts R time series to a given frequency by the 
 // `lasttick' method. It handles multiple days and aggregation is done on a
