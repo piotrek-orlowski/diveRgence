@@ -3,8 +3,8 @@
 
 #include <Rcpp.h>
 #include <vector>
-#include <boost\date_time\posix_time\posix_time.hpp>
-#include <boost\date_time\gregorian\gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 Rcpp::NumericVector createXts(std::vector<double> values_, std::vector<double> stamps_);
 

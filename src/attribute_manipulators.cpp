@@ -1,9 +1,9 @@
 #include <Rcpp.h>
 #include <vector>
 #include <string>
-#include <boost\date_time\posix_time\posix_time.hpp>
-#include <boost\date_time\posix_time\conversion.hpp>
-#include <boost\date_time\gregorian\gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
 using namespace Rcpp;
 
 // [[Rcpp::depends(BH)]]

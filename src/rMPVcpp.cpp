@@ -3,10 +3,10 @@
 #include <string>
 #include <iterator>
 #include <cmath>
-#include <boost\date_time\posix_time\posix_time.hpp>
-#include <boost\date_time\posix_time\conversion.hpp>
-#include <boost\date_time\gregorian\gregorian.hpp>
-#include "..\inst\include\attribute_manipulators.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include "../inst/include/attribute_manipulators.h"
 using namespace Rcpp;
 
 // [[Rcpp::depends(BH)]]
