@@ -24,7 +24,19 @@
 #' 
 #' @export rDivEngine
 
-rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, intradaySeasonFun = function(x) 1 , ...){
+rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, marketopen = "08:30:00", marketclose= "15:15:00" , intradaySeasonFun = function(x) 1 , ...){
+  
+  if(!(is.null(align.by) & is.null(align.period))){
+    marketopen <- as.POSIXlt(x = marketopen, tz = "UTC", format = "%H:%M:%S")
+    marketclose <- as.POSIXlt(x = marketclose, tz = "UTC", format = "%H:%M:%S")
+    marketopen <- c(marketopen$hour, marketopen$min, marketopen$sec)
+    marketclose <- c(marketclose$hour, marketclose$min, marketclose$sec)
+    rdata <- aggregatePrice_Xts(rdata = rdata, period_ = align.by, numPeriods_ = align.period, dayStart_ = marketopen, dayEnd_ = marketclose)
+  }
+  
+  if(makeReturns){
+    rdata <- makeReturns(ts = rdata)
+  }
   
   eval(parse(text = paste0("fooBase <- diveRgence:::",fooStr,"Base")))
   
@@ -50,26 +62,29 @@ rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, 
 #' @export rDivEngineInference
 #' @describeIn rDivEngine
 
-rDivEngineInference <- function(rdata, fooStr, pow, align.by, align.period, makeReturns, reference.time, ...){
+rDivEngineInference <- function(rdata, fooStr, pow, align.by, align.period, makeReturns, reference.time, year.days = 365, seconds.per.day = 86400, ...){
+  
+  if(!(is.null(align.by) | is.null(align.period))){
+    rdata <- aggregatePrice(ts = rdata, on = align.by, k = align.period, ...)
+  }
+  
+  if(makeReturns){
+    rdata <- makeReturns(ts = rdata)
+  }
   
   # Get average volatility during the day -- this is for better truncation
-  avg.vol <- rMPV(rdata = rdata, r.tot = 2, num.int = 10, makeReturns = makeReturns, align.by = align.by, align.period = align.period, ...)
+  avg.vol <- rMPVcpp(rdata = rdata, mNum = 4, pPow = 2, yearDays = year.days)
   
   dates <- unique(as.Date(index(rdata)))
   rdata.list <- lapply(dates, function(dd){
     loc.sp <- rdata[as.character(dd)]
-    if(!(is.null(align.by) & is.null(align.period))){
-      agg <- aggregatePrice(ts = loc.sp, on = align.by, k = align.period, ...)  
-    } else {
-      agg <- loc.sp
-    }
-    return(agg)
+    return(loc.sp)
   })
   
   # annualize volatilities
   T.ranges <- t(sapply(rdata.list, function(x) range(index(x))))
   T.ranges <- apply(T.ranges,1,diff)
-  T.ranges <- T.ranges / (365 * 86400)
+  T.ranges <- T.ranges / (year.days * seconds.per.day)
   avg.vol <- avg.vol / T.ranges
   
   # volatility seasonality

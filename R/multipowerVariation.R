@@ -13,7 +13,25 @@
 
 #' @export rMPV
 
-rMPV <- function(rdata, r.tot, num.int, makeReturns, align.by, align.period, ...){
+rMPV <- function(rdata, r.tot, num.int, makeReturns, year.days, align.by, align.period, ...){
+  # Adjustment for careless coders
+  if(hasArg(data)){ rdata <- data }
+  
+  if(!(is.null(align.by) | is.null(align.period))){
+    rdata <- aggregatePrice(ts = rdata, on = align.by, k = align.period, ...)
+  }
+  
+  if(makeReturns){
+    rdata <- makeReturns(ts = rdata)
+  }
+  
+  rmpv <- rMPVcpp(rdata = rdata, mNum = num.int, pPow = r.tot, yearDays = year.days)
+  
+  index(rmpv) <- as.Date(index(rmpv))
+  return(rmpv)
+}
+
+rMPV_legacy <- function(rdata, r.tot, num.int, makeReturns, align.by, align.period, ...){
   # Adjustment for careless coders
   if(hasArg(data)){ rdata <- data }
   
