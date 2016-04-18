@@ -8,7 +8,6 @@ Maintainer: Piotr Or{\l}owski <piotrek.orlowski@gmail.com>
 Description: Calculation of (and statistical inference about) realized divergence. Theory in Khajavi, Or{\l}owski, Trojani: ``Realized Divergence''
 License: GNU GPL 3.0
 Depends: Rcpp (>= 0.12.1),
-  BH,
   xts,
   zoo,
   xsum
