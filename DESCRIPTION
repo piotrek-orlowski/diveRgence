@@ -9,7 +9,6 @@ Description: Calculation of (and statistical inference about) realized divergenc
 License: GNU GPL 3.0
 Depends: Rcpp (>= 0.12.1),
   xts,
-  zoo,
-  xsum
+  zoo
 Imports: highfrequency
 LinkingTo: Rcpp, RcppArmadillo, BH
