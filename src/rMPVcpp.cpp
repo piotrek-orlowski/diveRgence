@@ -75,7 +75,6 @@ Rcpp::NumericVector rMPVcpp(const Rcpp::NumericVector& rdata, double mNum, doubl
     double nObs = rdataSub_reversed.size();
     rdataAccu[0] *= nObs/(nObs - mNum + 1);
     
-    locDate_posix = locDate_posix + boost::posix_time::seconds(86399);
     std::vector<double> locStampVec(1);
     locStampVec[0] = boost::posix_time::to_time_t(locTimeStamp_reversed.front());
     Rcpp::NumericVector locOut = createXts(rdataAccu, locStampVec);
