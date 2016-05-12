@@ -48,12 +48,12 @@ rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, 
   
   if(multixts){
     
-    result <- apply.daily(rdata, fooBase, pow, align.by, align.period, makeReturns, intradaySeasonFun, ...)
+    result <- apply.daily(rdata, fooBase, pow, align.by, align.period, intradaySeasonFun, makeReturns = FALSE, ...)
     return(result)
     
   } else if(!multixts){
     
-    result <- fooBase(rdata, pow, align.by, align.period, makeReturns, intradaySeasonFun, ...)
+    result <- fooBase(rdata, pow, align.by, align.period, intradaySeasonFun, makeReturns = FALSE, ...)
     return(result)
   }
   
