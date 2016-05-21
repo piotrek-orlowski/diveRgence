@@ -6,7 +6,7 @@ using namespace Rcpp;
 //[[Rcpp::export]]
 arma::vec spotVolBaseJump_cpp(double spotPoint, const arma::vec& rdataSq, const arma::vec& rdataAbs, const arma::vec& rdataInd, double tRange, const arma::vec& timeStampYears, double avgVol, double referenceTime, bool sepLR, double timeDelta, double yearLength){
   
-  arma::vec timeKernel = kernel_gaussian(timeStampYears, (spotPoint-referenceTime)/(86400*yearLength), timeDelta/10);
+  arma::vec timeKernel = kernel_gaussian(timeStampYears, (spotPoint-referenceTime)/(86400*yearLength), timeDelta/100);
   arma::vec timeKernelMinus, timeKernelPlus;
 
   double resultMinus, resultPlus;

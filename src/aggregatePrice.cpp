@@ -14,7 +14,7 @@ using namespace Rcpp;
 
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector rdata, std::string period_, int numPeriods_, Rcpp::NumericVector dayStart_, Rcpp::NumericVector dayEnd_){
+Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector& rdata, std::string period_, int numPeriods_, Rcpp::NumericVector dayStart_, Rcpp::NumericVector dayEnd_){
   
   // Check for rdata being an xts object with POSIX time
   
