@@ -2,6 +2,7 @@
 #include <Rcpp.h>
 #include <vector>
 #include <string>
+#include <time.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
@@ -16,6 +17,9 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector& rdata, std::string period_, int numPeriods_, Rcpp::NumericVector dayStart_, Rcpp::NumericVector dayEnd_){
   
+  // timing
+  time_t timeStart, timeEnd;
+  
   // Check for rdata being an xts object with POSIX time
   
   // declare result
@@ -28,19 +32,27 @@ Rcpp::NumericVector aggregatePrice_Xts(Rcpp::NumericVector& rdata, std::string p
   // First declare std::vector of boost posix times
   std::vector<boost::posix_time::ptime> rdataIndex(rdataIndex_rcpp.length());
   
+  time(&timeStart);
   for(int kk = 0; kk < rdataIndex.size(); kk++){
     rdataIndex[kk] = boost::posix_time::from_time_t(rdataIndex_rcpp[kk]);
   }
+  time(&timeEnd);
+  Rcout << "Elapsed index copy " << difftime(timeEnd,timeStart) << "\n";
   
   // get unique dates: first define a set, insert all into set, this will automatically get rid of redundant elements
   std::set<boost::gregorian::date> stripDates_set;
+  time(&timeStart);
   for(std::vector<boost::posix_time::ptime>::iterator it = rdataIndex.begin(); it != rdataIndex.end(); ++it){
     stripDates_set.insert(it->date());
   }
+  time(&timeEnd);
+  Rcout << "Elapsed strip dates " << difftime(timeEnd,timeStart) << "\n";
   
   std::vector<boost::gregorian::date> stripDates;
+  time(&timeStart);
   stripDates.assign(stripDates_set.begin(), stripDates_set.end());
- 
+  time(&timeEnd);
+  Rcout << "Elapsed copy strip dates " << difftime(timeEnd,timeStart) << "\n";
   // loop over stripDates; for each date subset rdata for the requisite day,
   // find the starting and ending time values in the day, create limiting times
   // from dayStart_ and dayEnd_ and check if they're not too far from the day's

@@ -10,7 +10,7 @@ using namespace Rcpp;
 
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector createXts(std::vector<double>& values_, std::vector<double>& stamps_) {
+Rcpp::NumericVector createXts(std::vector<double> values_, std::vector<double> stamps_) {
   
   Rcpp::NumericVector values(values_.begin(), values_.end());
   Rcpp::NumericVector stamps(stamps_.begin(), stamps_.end());
