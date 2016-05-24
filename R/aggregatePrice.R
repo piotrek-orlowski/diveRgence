@@ -5,14 +5,15 @@
 #' @param k positive integer, aggregation is performed every k \code{on}s
 #' @param marketopen string in format \code{"HH:MM:SS"}, start of trading time.
 #' @param marketclose string in format \code{"HH:MM:SS"}, end of trading time.
-
-aggregatePrice <- function(ts, on = 'minutes', k = 1, marketopen = "08:30:00", marketclose = "15:15:00"){
+#' @param pad.na logical, if \code{TRUE}, any time when the previous tick is earlier than \code{k} times \code{on}, the latter time stamp is populated with \code{NA_real}.
+#' @export
+aggregatePrice <- function(ts, on = 'minutes', k = 1, marketopen = "08:30:00", marketclose = "15:15:00", pad.na = TRUE){
   
   marketopen <- as.POSIXlt(x = marketopen, tz = "UTC", format = "%H:%M:%S")
   marketclose <- as.POSIXlt(x = marketclose, tz = "UTC", format = "%H:%M:%S")
   marketopen <- c(marketopen$hour, marketopen$min, marketopen$sec)
   marketclose <- c(marketclose$hour, marketclose$min, marketclose$sec)
-  rdata <- aggregatePrice_Xts(rdata = ts, period_ = on, numPeriods_ = k, dayStart_ = marketopen, dayEnd_ = marketclose)
+  rdata <- aggregatePrice_Xts(rdata = ts, period_ = on, numPeriods_ = k, dayStart_ = marketopen, dayEnd_ = marketclose, pad_na = pad.na)
   
   return(rdata)
 }
