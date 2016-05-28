@@ -48,12 +48,12 @@ rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, 
   
   if(multixts){
     
-    result <- apply.daily(rdata, fooBase, pow, align.by, align.period, intradaySeasonFun, makeReturns = makeReturns, ...)
+    result <- apply.daily(rdata, fooBase, pow, align.by = NULL, align.period = NULL, intradaySeasonFun, makeReturns = makeReturns)
     return(result)
     
   } else if(!multixts){
     
-    result <- fooBase(rdata, pow, align.by, align.period, intradaySeasonFun, makeReturns = makeReturns, ...)
+    result <- fooBase(rdata, pow, align.by = NULL, align.period = NULL, intradaySeasonFun, makeReturns = makeReturns)
     return(result)
   }
   
@@ -79,7 +79,7 @@ rDivEngineInference <- function(rdata, fooStr, pow, test.size = 0.05, align.by, 
   })
   
   ### Calculate realized divergence estimates
-  rDiv.result <- rDivEngine(rdata = rdata, fooStr = fooStr, pow = pow, makeReturns = makeReturns, align.by = align.by, align.period = align.period, ...)
+  rDiv.result <- rDivEngine(rdata = rdata, fooStr = fooStr, pow = pow, makeReturns = makeReturns, align.by = NULL, align.period = NULL, ...)
   
   if(makeReturns){
     rdata <- makeReturns(ts = rdata)
@@ -95,7 +95,7 @@ rDivEngineInference <- function(rdata, fooStr, pow, test.size = 0.05, align.by, 
   avg.vol <- avg.vol / T.ranges
   
   ### Calculate variance of realized divergence
-  rDiv.ci <- rDivEngineVarFun(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, makeReturns = makeReturns, align.by = align.by, align.period = align.period, avg.vol = avg.vol, intradaySeasonFun = function(x) 1, reference.time = reference.time, year.days = year.days, cl = cl, ...)
+  rDiv.ci <- rDivEngineVarFun(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, makeReturns = makeReturns, align.by = NULL, align.period = NULL, avg.vol = avg.vol, intradaySeasonFun = function(x) 1, reference.time = reference.time, year.days = year.days, cl = cl, ...)
   
   ### return
   result <- list(rDiv = rDiv.result, rDiv.clt = rDiv.ci + rep(rDiv.result, ncol(rDiv.ci)))
@@ -172,13 +172,13 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, test.size, intradaySeaso
   time.delta <- c(diff(time.stamp), median(diff(time.stamp))) / (86400 * year.days)
   
   # divergence derivative squared
-  div.deriv <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 3.0 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)])) * time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
+  div.deriv <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 2.5 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)])) * time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
   
   # divergence derivative squared, with respect to z
-  div.deriv.z <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseZDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 3.0 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
+  div.deriv.z <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseZDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 2.5 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
   
   # For the continuous part 
-  div.cont.part <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseContPart, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) <= 3.0 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
+  div.cont.part <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseContPart, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) <= 2.5 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
   
   div.cont.part <- sum(div.cont.part)
   

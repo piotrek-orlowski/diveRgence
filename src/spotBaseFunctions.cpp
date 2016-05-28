@@ -16,13 +16,13 @@ arma::vec spotVolBaseJump_cpp(double spotPoint, const arma::vec& rdataSq, const 
     arma::vec timeKernelMinus = timeKernel % (rdataInd < spotPoint);
     arma::vec timeKernelPlus = timeKernel % (rdataInd >= spotPoint);
     
-    resultMinus = arma::accu(timeKernelMinus % rdataSq % (rdataAbs < 3.0 * pow(avgVol,0.5) * pow(timeDelta,0.4999)));
+    resultMinus = arma::accu(timeKernelMinus % rdataSq % (rdataAbs < 2.5 * pow(avgVol,0.5) * pow(timeDelta,0.4999)));
     resultMinus /= arma::accu(timeKernelMinus.subvec(0,timeKernelMinus.n_elem-2) % arma::diff(timeStampYears) );
     
-    resultPlus = arma::accu(timeKernelPlus % rdataSq % (rdataAbs < 3.0 * pow(avgVol,0.5) * pow(timeDelta,0.4999)));
+    resultPlus = arma::accu(timeKernelPlus % rdataSq % (rdataAbs < 2.5 * pow(avgVol,0.5) * pow(timeDelta,0.4999)));
     resultPlus /= arma::accu(timeKernelPlus.subvec(1,timeKernelPlus.n_elem-1) % arma::diff(timeStampYears) );
   } else {
-    resultMinus = arma::accu(timeKernel % rdataSq % (rdataAbs < 3.0 * pow(avgVol,0.5) * pow(timeDelta,0.4999)));
+    resultMinus = arma::accu(timeKernel % rdataSq % (rdataAbs < 2.5 * pow(avgVol,0.5) * pow(timeDelta,0.4999)));
     resultMinus /= arma::accu(timeKernel.subvec(0,timeKernel.n_elem-2) % arma::diff(timeStampYears) );
     
     resultPlus = resultMinus;
