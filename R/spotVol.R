@@ -14,7 +14,7 @@
 #' @details The most important arguments to pass go \code{\link[highfrequency]{aggregatePrice}} are \code{marketopen} and \code{marketclose}, see documentation therein. The default values are different from our test data set.
 #' @export spotVol
 
-spotVol <-  function(rdata, spot.index = NULL, makeReturns, align.by, align.period, apply.at, apply.period, avg.vol, reference.time= "07:30:00", vol.jumping = TRUE, year.days = 365, ...){
+spotVol <-  function(rdata, spot.index = NULL, makeReturns, align.by, align.period, apply.at, apply.period, avg.vol, reference.time= "07:30:00", vol.jumping = TRUE, year.days = 365, seconds.per.day = 86400, ...){
   # Adjustment for careless coders
   if(hasArg(data)){ rdata <- data }
   
@@ -60,7 +60,7 @@ spotVol <-  function(rdata, spot.index = NULL, makeReturns, align.by, align.peri
   
   # Apply estimator
   # result <- sapply(X = spot.index, FUN = estFun, rdataSq = rdataSq, rdataAbs = rdataAbs, rdataInd = index(rdata), T.range = T.range, time.stamp.years = time.stamp.years, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, sep.lr = TRUE, time.delta = delta.bandwidth)
-  result <- sapply(X = spot.index, FUN = diveRgence:::spotVolBaseJump_cpp, rdataSq = rdataSq, rdataAbs = rdataAbs, rdataInd = as.numeric(index(rdata)), tRange = as.numeric(T.range), timeStampYears = time.stamp.years, avgVol = as.numeric(avg.vol), referenceTime = as.numeric(reference.time), sepLR = vol.jumping, timeDelta = delta.bandwidth, yearLength = year.days)
+  result <- sapply(X = as.numeric(spot.index), FUN = diveRgence:::spotVolBaseJump_cpp, rdataSq = rdataSq, rdataAbs = rdataAbs, rdataInd = as.numeric(index(rdata)), tRange = as.numeric(T.range), timeStampYears = time.stamp.years, avgVol = as.numeric(avg.vol), referenceTime = as.numeric(reference.time), sepLR = vol.jumping, timeDelta = delta.bandwidth, yearLength = year.days)
   
   result <- t(result)
   

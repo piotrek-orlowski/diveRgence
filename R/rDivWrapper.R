@@ -26,6 +26,9 @@
 
 rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, marketopen = "08:30:00", marketclose= "15:15:00" , intradaySeasonFun = function(x) 1 , ...){
   
+  # Adjustment for careless coders
+  if(hasArg(data)){ rdata <- data }
+  
   if(!(is.null(align.by) & is.null(align.period))){
     marketopen <- as.POSIXlt(x = marketopen, tz = "UTC", format = "%H:%M:%S")
     marketclose <- as.POSIXlt(x = marketclose, tz = "UTC", format = "%H:%M:%S")
@@ -40,20 +43,17 @@ rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, 
   
   eval(parse(text = paste0("fooBase <- diveRgence:::",fooStr,"Base")))
   
-  # Adjustment for careless coders
-  if(hasArg(data)){ rdata <- data }
-  
   # Multiday adjustment: 
   multixts <- highfrequency:::.multixts(rdata);
   
   if(multixts){
     
-    result <- apply.daily(rdata, fooBase, pow, align.by, align.period, intradaySeasonFun, makeReturns = FALSE, ...)
+    result <- apply.daily(rdata, fooBase, pow, align.by, align.period, intradaySeasonFun, makeReturns = makeReturns, ...)
     return(result)
     
   } else if(!multixts){
     
-    result <- fooBase(rdata, pow, align.by, align.period, intradaySeasonFun, makeReturns = FALSE, ...)
+    result <- fooBase(rdata, pow, align.by, align.period, intradaySeasonFun, makeReturns = makeReturns, ...)
     return(result)
   }
   
@@ -62,11 +62,24 @@ rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, 
 #' @export rDivEngineInference
 #' @describeIn rDivEngine
 
-rDivEngineInference <- function(rdata, fooStr, pow, align.by, align.period, makeReturns, reference.time, year.days = 365, seconds.per.day = 86400, ...){
+rDivEngineInference <- function(rdata, fooStr, pow, test.size = 0.05, align.by, align.period, makeReturns, reference.time, year.days = 365, seconds.per.day = 86400, cl = NULL, ...){
+  
+  # Adjustment for careless coders
+  if(hasArg(data)){ rdata <- data }
+  
   
   if(!(is.null(align.by) | is.null(align.period))){
     rdata <- aggregatePrice(ts = rdata, on = align.by, k = align.period, ...)
   }
+  
+  dates <- unique(as.Date(index(rdata)))
+  rdata.list <- lapply(dates, function(dd){
+    loc.sp <- rdata[as.character(dd)]
+    return(loc.sp)
+  })
+  
+  ### Calculate realized divergence estimates
+  rDiv.result <- rDivEngine(rdata = rdata, fooStr = fooStr, pow = pow, makeReturns = makeReturns, align.by = align.by, align.period = align.period, ...)
   
   if(makeReturns){
     rdata <- makeReturns(ts = rdata)
@@ -75,79 +88,22 @@ rDivEngineInference <- function(rdata, fooStr, pow, align.by, align.period, make
   # Get average volatility during the day -- this is for better truncation
   avg.vol <- rMPVcpp(rdata = rdata, mNum = 4, pPow = 2, yearDays = year.days)
   
-  dates <- unique(as.Date(index(rdata)))
-  rdata.list <- lapply(dates, function(dd){
-    loc.sp <- rdata[as.character(dd)]
-    return(loc.sp)
-  })
-  
   # annualize volatilities
   T.ranges <- t(sapply(rdata.list, function(x) range(index(x))))
   T.ranges <- apply(T.ranges,1,diff)
-  T.ranges <- T.ranges / (year.days * seconds.per.day)
+  T.ranges <- T.ranges / (year.days * 86400)
   avg.vol <- avg.vol / T.ranges
   
-  # volatility seasonality
-  rdata.lengths <- sapply(rdata.list,length)
-  rdata.unique.lenghts <- unique(rdata.lengths)
-  rdata.counts <- sapply(rdata.unique.lenghts, function(x) length(which(rdata.lengths==x)))
-  rdata.pick <- rdata.list[which(rdata.lengths == rdata.unique.lenghts[which.max(rdata.counts)])]
-  rdata.pick.ranges <- t(sapply(rdata.list, function(x) range(index(x)-index(x)[1])))
-  rdata.pick.ranges <- apply(rdata.pick.ranges,2,median)
-  rdata.pick.ranges <- as.POSIXct(rdata.pick.ranges, origin = Sys.Date()) + as.integer(as.POSIXct(reference.time,format="%H:%M:%S")) - as.integer(as.POSIXct(Sys.Date()))
-  rdata.pick.ranges <- as.character(rdata.pick.ranges, format = "%H:%M:%S")
-  rdata.for.seasonality <- do.call(rbind.xts, rdata.pick)
-  
-  time.alignment.for.seasonality <- floor(median(unlist(sapply(rdata.for.seasonality, function(x) diff(as.numeric(index(x)))))))
-  
-  seasonVol <- tryCatch(highfrequency::spotvol(data = rdata.for.seasonality, makeReturns = T, method = "detper", on = "seconds", k = time.alignment.for.seasonality, marketopen = rdata.pick.ranges[1], marketclose = rdata.pick.ranges[2])$periodic, error = function(e){
-    print(e)
-    print("\n")
-    print("Error in seasonality calculation, periodic component set to unity.")
-    res <- xts(rep(1,rdata.unique.lenghts[which.max(rdata.counts)]), order.by = index(rdata.for.seasonality[as.character(index(rdata.for.seasonality[1]), format = "%Y-%m-%d")]))
-    return(res)
-  })
-  seasonVol <- splinefun(x = as.numeric(sapply(index(seasonVol), function(x) difftime(x,index(seasonVol)[1],units="secs"))), y = as.numeric(seasonVol), method = "natural")
-    
-  ### Calculate realized divergence estimates
-  rDiv.result <- rDivEngine(rdata = rdata, fooStr = fooStr, pow = pow, makeReturns = makeReturns, align.by = align.by, align.period = align.period, intradaySeasonFun = seasonVol, ...)
-  
   ### Calculate variance of realized divergence
-  rDiv.ci <- rDivEngineVarFun(rdata = rdata, fooStr = fooStr, pow = pow, makeReturns = makeReturns, align.by = align.by, align.period = align.period, avg.vol = avg.vol, intradaySeasonFun = seasonVol, reference.time = as.character(as.POSIXct(median(sapply(rdata.for.seasonality, function(ll) index(head(ll,1)))), origin="1970-01-01"), format= "%H:%M:%S"), ...)
-  
-#   ### Rescale with frequency
-#   if(!is.null(align.period) & !is.null(align.by)){
-#     stopifnot(align.by %in% c("minutes","seconds","hours"))
-#     if(align.by == "minutes"){
-#       
-#       mean.dt <- align.period * 60 / (23400 * 365)
-#       
-#     } else if(align.by == "seconds"){
-#       
-#       mean.dt <- align.period / (23400 * 365)  
-#       
-#     } else if(align.by == "hours"){
-#       
-#       mean.dt <- align.period * 3600 / (23400 * 365)
-#       
-#     }
-#   } else {
-#     
-#     T.range <- apply.daily(x = rdata, FUN = function(x) range(index(x)))
-#     T.range <- T.range[,2] - T.range[,1]
-#     mean.dt <- apply.daily(x = rdata, FUN = function(x) mean(difftime(time2 = head(index(rdata),-1), time1 = tail(index(rdata),-1), units = "secs")))
-#     mean.dt <- mean.dt/T.range/365
-#   }
-#   
-#   rDiv.variance <- rDiv.variance * mean.dt
+  rDiv.ci <- rDivEngineVarFun(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, makeReturns = makeReturns, align.by = align.by, align.period = align.period, avg.vol = avg.vol, intradaySeasonFun = function(x) 1, reference.time = reference.time, year.days = year.days, cl = cl, ...)
   
   ### return
-  result <- list(rDiv = rDiv.result, asy.var = rDiv.ci)
+  result <- list(rDiv = rDiv.result, rDiv.clt = rDiv.ci + rep(rDiv.result, ncol(rDiv.ci)))
   class(result) <- c("list","divinf")
   return(result)
 }
 
-rDivEngineVarFun <- function(rdata, fooStr, pow, align.by, align.period, makeReturns, avg.vol, intradaySeasonFun, reference.time, ...){
+rDivEngineVarFun <- function(rdata, fooStr, pow, test.size = test.size, align.by, align.period, makeReturns, avg.vol, intradaySeasonFun, reference.time, year.days, cl = NULL, ...){
   # Adjustment for careless coders
   if(hasArg(data)){ rdata <- data }
   
@@ -155,33 +111,43 @@ rDivEngineVarFun <- function(rdata, fooStr, pow, align.by, align.period, makeRet
   multixts <- highfrequency:::.multixts(rdata);
   
   if(multixts){
-    
-    result <- apply.daily(rdata, rDivEngineVarFunBase, fooStr = fooStr, pow= pow, align.by= align.by, align.period = align.period, makeReturns = makeReturns, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, ...)
+    if(is.null(cl)){
+      result <- apply.daily(rdata, rDivEngineVarFunBase, fooStr = fooStr, pow= pow, test.size = test.size, align.by= NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days, ...)  
+    } else {
+      rdata.dates <- unique(as.Date(index(rdata)))
+      rdata.list <- lapply(rdata.dates,function(x) rdata[as.character(x)])
+      clusterExport(cl, c("fooStr","pow","test.size","avg.vol","intradaySeasonFun","reference.time","year.days"), envir = environment())
+      if(any(grepl("snow",search()))) {
+        res.list <- snow::parLapply(cl = cl, x = rdata.list, fun = rDivEngineVarFunBase, fooStr = fooStr, pow = pow, test.size =test.size, align.by = NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days)
+      } else if(any(grepl("parallel",search()))){
+        res.list <- parallel::parLapply(cl = cl, X = rdata.list, fun = rDivEngineVarFunBase, fooStr = fooStr, pow = pow, test.size =test.size, align.by = NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days)
+      }
+      result <- t(do.call(what = cbind, res.list))
+      result <- xts(result, rdata.dates)
+    }
     return(result)
-    
   } else if(!multixts){
-    
-    result <- rDivEngineVarFunBase(rdata, fooStr, pow, align.by, align.period, makeReturns, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, ...)
+    result <- rDivEngineVarFunBase(rdata, fooStr, pow, test.size, align.by, align.period, makeReturns, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days, ...)
     return(result)
   }
 }
 
-rDivEngineVarFunBase <- function(rdata, fooStr, pow, align.by, align.period, makeReturns, avg.vol, intradaySeasonFun, reference.time, ...){
+rDivEngineVarFunBase <- function(rdata, fooStr, pow, test.size, align.by, align.period, makeReturns, avg.vol, intradaySeasonFun, reference.time, year.days, ...){
   
   if((!is.null(align.by))&&(!is.null(align.period))){
     rdata <- aggregatePrice(rdata, on=align.by, k=align.period, ...);
   }
   
   if(makeReturns){
-    rdata <- makeReturns(rdata) 
+    rdata <- tail(rdata,-1) 
   }  
   
-  result <- apply(matrix(pow),1, rDivEngineVarFoo, fooStr = fooStr, tsMat = rdata, align.by = align.by, align.period = align.period, makeReturns = FALSE, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, ...) 
+  result <- apply(matrix(pow),1, rDivEngineVarFoo, fooStr = fooStr, tsMat = rdata, test.size = test.size, align.by = align.by, align.period = align.period, makeReturns = FALSE, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days , ...) 
   
   return(result)  
 }
 
-rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, intradaySeasonFun, reference.time, ...){
+rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, test.size, intradaySeasonFun, reference.time, year.days, ...){
   
   eval(parse(text = paste0("fooBaseDeriv <- ",fooStr,"BaseDeriv")))
   eval(parse(text = paste0("fooBaseZDeriv <- ",fooStr,"BaseZDeriv")))
@@ -191,7 +157,8 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, intradaySeasonFun, refer
   avg.vol <- avg.vol[as.character(head(index(tsMat),1), format = "%Y-%m-%d")]
   # spot var is hard at the ends of the sample. set k as function of single day length
   k <- ceiling(sqrt(1/3 * nrow(tsMat)))
-  spot.var <- spotVol(rdata = tsMat, spot.index = index(tsMat), estFun = spotVolBaseJump, makeReturns = F, align.by = NULL, align.period = NULL, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time)
+  spot.var <- spotVol(rdata = tsMat, spot.index = index(tsMat), makeReturns = FALSE, align.by = NULL, align.period = NULL, avg.vol = avg.vol, reference.time = reference.time, vol.jumping = FALSE, year.days = year.days)
+  # spot.var <- spotVol(rdata = tsMat, spot.index = index(tsMat), estFun = spotVolBaseJump, makeReturns = F, align.by = NULL, align.period = NULL, avg.vol = avg.vol, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time)
   
   avg.var <- spot.var$avg
   spot.var <- spot.var$spot[(k+1):(nrow(tsMat)-k)]
@@ -202,43 +169,34 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, intradaySeasonFun, refer
   reference.time$mon <- as.POSIXlt(index(tsMat)[1])$mon
   reference.time$mday <- as.POSIXlt(index(tsMat)[1])$mday
   time.stamp <- sapply(index(tsMat), function(x) as.numeric(difftime(time1 = x, time2 = reference.time, units = "sec")))
-  time.delta <- c(diff(time.stamp), median(diff(time.stamp))) / (86400 * 365)
+  time.delta <- c(diff(time.stamp), median(diff(time.stamp))) / (86400 * year.days)
   
   # divergence derivative squared
-  div.deriv <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 3 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)])) * time.delta[(k+1):(nrow(tsMat)-k)]^(0.49) )
+  div.deriv <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 3.0 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)])) * time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
   
   # divergence derivative squared, with respect to z
-  div.deriv.z <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseZDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 3 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.49))
+  div.deriv.z <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseZDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 3.0 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
   
   # For the continuous part 
-  div.cont.part <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseContPart, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) <= 3 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.49))
+  div.cont.part <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseContPart, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) <= 3.0 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
   
   div.cont.part <- sum(div.cont.part)
   
   # Monte Carlo
-  test.size <- 0.05
-  num.reps <- 1e3/test.size
+  if(length(test.size) == 1){
+    num.reps <- 1e3/test.size  
+    test.size <- c(1-test.size/2, test.size/2)
+  } else {
+    num.reps <- 1e3/min(min(test.size),diff(test.size))
+    test.size <- rev(test.size)
+  }
   
-  # Generate random variates
-#   U.plus <- matrix(rnorm(n = (nrow(tsMat)-2*(k)) * num.reps, mean = 0, sd = 1), nrow = nrow(tsMat)-2*k, ncol= num.reps)
-#   U.minus <- matrix(rnorm(n = (nrow(tsMat)-2*(k)) * num.reps, mean = 0, sd = 1), nrow = nrow(tsMat)-2*k, ncol= num.reps)
-#   K.p <- matrix(runif(n = (nrow(tsMat) - 2*(k)) * num.reps, min = 0, max = 1), nrow = nrow(tsMat)-2*k, ncol= num.reps)
-#   U.cont <- rnorm(num.reps, mean = 0, sd = 1)
-#   
-#   # Calculate limiting variables
-#   limiting.variable <- U.plus * sqrt(K.p) * matrix(sqrt(spot.var$minus), nrow = nrow(tsMat) - 2*k, ncol = num.reps) * matrix(div.deriv, nrow = nrow(tsMat) - 2*k, ncol = num.reps)
-#   rm(U.plus)
-#   limiting.variable <- limiting.variable + U.minus * sqrt(1-K.p) * matrix(sqrt(spot.var$plus), nrow = nrow(tsMat) - 2*k, ncol = num.reps) * matrix(div.deriv, nrow = nrow(tsMat) - 2*k, ncol = num.reps)
-#   limiting.variable <- limiting.variable - U.minus * sqrt(K.p) * matrix(div.deriv.z, nrow = nrow(tsMat) - 2*k, ncol = num.reps)
-#   rm(U.minus, K.p)
-#   limiting.variable <- apply(X = limiting.variable, MARGIN = 2, FUN = sum)
-#   limiting.variable <- limiting.variable + U.cont * sqrt(div.cont.part)
-#   limiting.variable <- limiting.variable * sqrt(median(time.delta))
+  gc()
   limiting.variable <- mcCltInference(rdivDerivX = div.deriv, rdivDerivZ = div.deriv.z, rdivCont = div.cont.part, spotVolPlus = spot.var$plus, spotVolMinus = spot.var$minus, nSampl = num.reps)
   limiting.variable <- limiting.variable * sqrt(median(time.delta))
   
   # Construct confidence interval
-  res.ci <- - quantile(limiting.variable, probs = c(1-test.size/2, test.size/2))
+  res.ci <- - quantile(limiting.variable, probs = test.size)
   
   # multiply, sum, look what gets
   # spot.var <- matrix(as.numeric(spot.var), nrow = nrow(spot.var), ncol = ncol(div.deriv.sq))

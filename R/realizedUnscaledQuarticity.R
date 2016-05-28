@@ -40,7 +40,7 @@ rUKurtBase <- function(rdata, pow, align.by, align.period, makeReturns, intraday
   }
   
   if(makeReturns){
-    rdata <- tail(makeReturns(rdata),-1)
+    rdata <- tail(rdata,-1)
   }  
   
   rdata <- as.numeric(rdata)
