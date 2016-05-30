@@ -10,7 +10,7 @@ using namespace Rcpp;
 
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector createXts(std::vector<double> values_, std::vector<double> stamps_) {
+Rcpp::NumericVector createXts(std::vector<double> values_, std::vector<int> stamps_) {
   
   Rcpp::NumericVector values(values_.begin(), values_.end());
   Rcpp::NumericVector stamps(stamps_.begin(), stamps_.end());
@@ -44,7 +44,7 @@ Rcpp::NumericVector resizeNV_withAttributes(Rcpp::NumericVector vec1, Rcpp::Nume
   }
   // Rcpp::NumericVector outVec(outVec_std.begin(), outVec_std.end());
   
-  std::vector<double> index_std;
+  std::vector<int> index_std;
   if(vec1.size() > 0){
     Rcpp::NumericVector index_vec1 = vec1.attr("index");  
     for(Rcpp::NumericVector::iterator it =index_vec1.begin(); it != index_vec1.end(); ++it){

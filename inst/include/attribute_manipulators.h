@@ -6,7 +6,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 
-Rcpp::NumericVector createXts(std::vector<double> values_, std::vector<double> stamps_);
+Rcpp::NumericVector createXts(std::vector<double> values_, std::vector<int> stamps_);
 
 Rcpp::NumericVector resizeNV_withAttributes(Rcpp::NumericVector vec1, Rcpp::NumericVector vec2);
 
