@@ -163,7 +163,8 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, spot.var, jump.series, t
   # where are we in avg vol?
   avg.vol <- avg.vol[as.character(head(index(tsMat),1), format = "%Y-%m-%d")]
   # spot var is hard at the ends of the sample. set k as function of single day length
-  k <- ceiling(sqrt(1/3 * nrow(tsMat)))
+  # k <- ceiling(sqrt(1/3 * nrow(tsMat)))
+  k <- 2
   if(is.null(spot.var)){
     spot.var <- spotVol(rdata = tsMat, spot.index = index(tsMat), makeReturns = FALSE, align.by = NULL, align.period = NULL, avg.vol = avg.vol, reference.time = reference.time, vol.jumping = FALSE, year.days = year.days) 
     spot.var <- spot.var$spot[(k+1):(nrow(tsMat)-k)]
