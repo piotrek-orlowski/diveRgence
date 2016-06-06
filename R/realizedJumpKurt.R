@@ -83,7 +83,7 @@ rJKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
 }
 
 rJKurtBaseZDeriv <- function(p, tsMat, .sum = FALSE){
-  res <- rep(0, nrow(tsMat))
+  res <- rep(0, length(tsMat))
   if(.sum){
     res <- 0
   }

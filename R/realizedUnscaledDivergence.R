@@ -96,7 +96,9 @@ rUDivBaseZDeriv <- function(p, tsMat, .sum = FALSE){
     res <- res - cnst.2*(exp(tsMat) - 1)
   }
   res <- p*exp(p*z)*res
-  res <- sum(res)
+  if(.sum){
+    res <- sum(res)
+  }
   return(res)
 }
 
