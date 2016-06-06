@@ -2,7 +2,7 @@
 
 library(diveRgence)
 library(affineModelR)
-
+Sys.setenv(TZ="UTC")
 #### ---- LOAD PARAMETERS ----
 data("affine-parameters-bates2006")
 
@@ -31,8 +31,10 @@ jmp.cal <- as.POSIXct(as.POSIXct(as.Date("2016-01-01")) + 8.5*3600 + 86400 * jmp
 jmp.path <- xts(x = sim.paths$jumpSizes[[1]][,-1], order.by = jmp.cal)
 jmp.path <- jmp.path["T08:30:00/T15:00:00"]
 
-stock.path <- stock.path["/2017-05-18"]
-vol.path <- vol.path["/2017-05-18"]
+last.date <- tail(as.character(unique(as.Date(index(stock.path)))))
+
+stock.path <- stock.path[paste0("/",last.date)]
+vol.path <- vol.path[paste0("/",last.date)]
 
 #### ---- ESTIMATE INTEGRATED VOLATILITY ----
 library(highfrequency)
@@ -90,6 +92,9 @@ system.time(
     return(xts(x = rv.ci$perc[,4:5,drop=FALSE], order.by = dt))
   }
 )
+
+index(stock.rv) <- as.Date(index(stock.rv))
+index(vol.path.aggr) <- as.Date(index(vol.path.aggr))
 
 plot(sqrt(stock.rv), ylim = range(c(sqrt(c(as.numeric(vol.path.aggr),as.numeric(stock.rv))),as.numeric(rv.ci.par))))
 lines(sqrt(stock.rv), col = "darkblue", lwd = 1.5)
