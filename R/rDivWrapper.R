@@ -211,14 +211,14 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, spot.var, jump.series, t
   if(is.null(jump.series)){
     div.deriv.z <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseZDeriv, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) > 2.5 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
   } else {
-    div.deriv.z <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseZDeriv, tsMat = jump.series, .sum = FALSE)
+    div.deriv.z <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseZDeriv, tsMat = as.numeric(jump.series), .sum = FALSE)
     }
   
   # For the continuous part 
   if(is.null(jump.series)){
     div.cont.part <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseContPart, tsMat = tsMat[(k+1):(nrow(tsMat)-k)], .sum = FALSE) * as.numeric(abs(tsMat[(k+1):(nrow(tsMat)-k)]) <= 2.5 * sqrt(as.numeric(avg.var) * intradaySeasonFun(time.stamp[(k+1):(nrow(tsMat)-k)]))* time.delta[(k+1):(nrow(tsMat)-k)]^(0.4999))
   } else {
-    div.cont.part <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseContPart, tsMat = tsMat - jump.series, .sum = FALSE)
+    div.cont.part <- apply(X = matrix(p), MARGIN = 1, FUN = fooBaseContPart, tsMat = tsMat - as.numeric(jump.series), .sum = FALSE)
   }
   
   div.cont.part <- sum(div.cont.part)
