@@ -67,6 +67,24 @@ divUKurtFoo <- function(p, tsMat){
   return(res)
 }
 
+divUKurtFoo_true <- function(p, tsMat, z){
+  
+  if(p == 0){ 
+    res <- -2 - tsMat^3/3 - 2*z - z^2 - tsMat^2*(1 + z) + exp(tsMat)* (2 + 2*z + z^2) - tsMat * (2 + 2*z + z^2)
+  } else if(p == 1){
+    res <- 1/3*exp(z)*(3*(2 - 2*z + z^2) + exp(tsMat)*(tsMat^3 + 3*tsMat^2*(-1 + z) - 3*(2 - 2*z + z^2) + 3*tsMat*(2 - 2*z + z^2)))
+  } else {
+    res <- -exp(tsMat)*p^3*(2 + (-1 + p)*z*(-2 + (-1 + p)*z))
+    res <- res + (-1 + p)^3*(2 + p*z*(-2 + p*z))
+    res <- res + exp(p*tsMat)*(2 + (-1 + p)*p*(6 + (-1 + p)*p*tsMat^2 + 2*tsMat*(1 - 2*p + (-1 + p)*p*z) + z*(2 + p*(-4 + (-1 + p)*z))))
+    res <- res * exp(p*z)/(p^3 * (p-1)^3)
+    # sm.tsMat <- which(abs(tsMat) < 1e-5)
+    # res[sm.tsMat] <- tsMat[sm.tsMat]^3/6 + tsMat[sm.tsMat]^4/24*(1+2*p)
+  }
+  res <- sum(res)
+  return(res)
+}
+
 rUKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
   z <- c(0,head(cumsum(tsMat),-1))
   if(p == 0){

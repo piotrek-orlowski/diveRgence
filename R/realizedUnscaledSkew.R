@@ -66,6 +66,23 @@ divUSkewFoo <- function(p, tsMat){
   return(res)
 }
 
+divUSkewFoo_true <- function(p, tsMat, z){
+  if(p == 0){ 
+    res <- -1 - tsMat^2/2 - z + exp(tsMat) * (1 + z) - tsMat * (1 + z)
+  } else if(p == 1){
+    res <- tsMat^2/2*exp(tsMat + z) + tsMat * exp(tsMat + z)*(z - 1) + expm1(tsMat)*(exp(z) - z*exp(z))
+  } else {
+    res <- 1/(p^2*(p-1)^2)
+    res <- res * exp(p*z)
+    res <- res * (-p^2*exp(tsMat)*(z*(p-1)-1) + (p*z-1)*(p-1)^2 + exp(p*tsMat)*(1 + p^2*(z+tsMat)-p*(2+z+tsMat)))
+    # sm.tsMat <- which(abs(tsMat) < 1e-5)
+    # res[sm.tsMat] <- tsMat[sm.tsMat]^3/6 + tsMat[sm.tsMat]^4/24*(1+2*p)
+  }
+  res <- sum(res)
+  return(res)
+}
+
+
 rUSkewBaseDeriv <- function(p, tsMat, .sum = FALSE){
   z <- c(0,head(cumsum(tsMat),-1))
   if(p == 0){
