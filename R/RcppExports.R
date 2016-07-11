@@ -38,7 +38,7 @@ rMPVcpp <- function(rdata, mNum, pPow, yearDays) {
     .Call('diveRgence_rMPVcpp', PACKAGE = 'diveRgence', rdata, mNum, pPow, yearDays)
 }
 
-spotVolBaseJump_cpp <- function(spotPoint, rdataSq, rdataAbs, rdataInd, tRange, timeStampYears, avgVol, referenceTime, sepLR, timeDelta, yearLength) {
-    .Call('diveRgence_spotVolBaseJump_cpp', PACKAGE = 'diveRgence', spotPoint, rdataSq, rdataAbs, rdataInd, tRange, timeStampYears, avgVol, referenceTime, sepLR, timeDelta, yearLength)
+spotVolBaseJump_cpp <- function(spotPoint, rdataSq, rdataAbs, rdataInd, tRange, timeStampYears, avgVol, referenceTime, sepLR, timeDelta, yearLength, kernelType = "gaussian") {
+    .Call('diveRgence_spotVolBaseJump_cpp', PACKAGE = 'diveRgence', spotPoint, rdataSq, rdataAbs, rdataInd, tRange, timeStampYears, avgVol, referenceTime, sepLR, timeDelta, yearLength, kernelType)
 }
 

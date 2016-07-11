@@ -118,8 +118,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // spotVolBaseJump_cpp
-arma::vec spotVolBaseJump_cpp(double spotPoint, const arma::vec& rdataSq, const arma::vec& rdataAbs, const arma::vec& rdataInd, double tRange, const arma::vec& timeStampYears, double avgVol, double referenceTime, bool sepLR, double timeDelta, double yearLength);
-RcppExport SEXP diveRgence_spotVolBaseJump_cpp(SEXP spotPointSEXP, SEXP rdataSqSEXP, SEXP rdataAbsSEXP, SEXP rdataIndSEXP, SEXP tRangeSEXP, SEXP timeStampYearsSEXP, SEXP avgVolSEXP, SEXP referenceTimeSEXP, SEXP sepLRSEXP, SEXP timeDeltaSEXP, SEXP yearLengthSEXP) {
+arma::vec spotVolBaseJump_cpp(double spotPoint, const arma::vec& rdataSq, const arma::vec& rdataAbs, const arma::vec& rdataInd, double tRange, const arma::vec& timeStampYears, double avgVol, double referenceTime, bool sepLR, double timeDelta, double yearLength, std::string kernelType);
+RcppExport SEXP diveRgence_spotVolBaseJump_cpp(SEXP spotPointSEXP, SEXP rdataSqSEXP, SEXP rdataAbsSEXP, SEXP rdataIndSEXP, SEXP tRangeSEXP, SEXP timeStampYearsSEXP, SEXP avgVolSEXP, SEXP referenceTimeSEXP, SEXP sepLRSEXP, SEXP timeDeltaSEXP, SEXP yearLengthSEXP, SEXP kernelTypeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -134,7 +134,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type sepLR(sepLRSEXP);
     Rcpp::traits::input_parameter< double >::type timeDelta(timeDeltaSEXP);
     Rcpp::traits::input_parameter< double >::type yearLength(yearLengthSEXP);
-    __result = Rcpp::wrap(spotVolBaseJump_cpp(spotPoint, rdataSq, rdataAbs, rdataInd, tRange, timeStampYears, avgVol, referenceTime, sepLR, timeDelta, yearLength));
+    Rcpp::traits::input_parameter< std::string >::type kernelType(kernelTypeSEXP);
+    __result = Rcpp::wrap(spotVolBaseJump_cpp(spotPoint, rdataSq, rdataAbs, rdataInd, tRange, timeStampYears, avgVol, referenceTime, sepLR, timeDelta, yearLength, kernelType));
     return __result;
 END_RCPP
 }

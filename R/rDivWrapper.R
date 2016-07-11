@@ -65,7 +65,7 @@ rDivEngine <- function(rdata, fooStr, pow, makeReturns, align.by, align.period, 
 #' @export rDivEngineInference
 #' @describeIn rDivEngine
 
-rDivEngineInference <- function(rdata, fooStr, pow, test.size = 0.05, align.by, align.period, makeReturns, reference.time, year.days = 365, seconds.per.day = 86400, cl = NULL, spot.vol.series = NULL, jump.series = NULL,...){
+rDivEngineInference <- function(rdata, fooStr, pow, test.size = 0.05, align.by, align.period, makeReturns, reference.time, year.days = 365, seconds.per.day = 86400, cl = NULL, spot.vol.series = NULL, jump.series = NULL, kernel.type = "gaussian", ...){
   
   # Adjustment for careless coders
   if(hasArg(data)){ rdata <- data }
@@ -102,7 +102,7 @@ rDivEngineInference <- function(rdata, fooStr, pow, test.size = 0.05, align.by, 
   avg.vol <- avg.vol / T.ranges
   
   ### Calculate variance of realized divergence
-  rDiv.ci <- rDivEngineVarFun(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, makeReturns = makeReturns, align.by = NULL, align.period = NULL, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = function(x) 1, reference.time = reference.time, year.days = year.days, cl = cl, ...)
+  rDiv.ci <- rDivEngineVarFun(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, makeReturns = makeReturns, align.by = NULL, align.period = NULL, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = function(x) 1, reference.time = reference.time, year.days = year.days, kernel.type = kernel.type, cl = cl, ...)
   
   ### return
   result <- list(rDiv = rDiv.result, rDiv.clt = rDiv.ci + rep(rDiv.result, ncol(rDiv.ci)))
@@ -110,7 +110,7 @@ rDivEngineInference <- function(rdata, fooStr, pow, test.size = 0.05, align.by, 
   return(result)
 }
 
-rDivEngineVarFun <- function(rdata, fooStr, pow, test.size = test.size, align.by, align.period, makeReturns, avg.vol, spot.vol.series, jump.series, intradaySeasonFun, reference.time, year.days, cl = NULL, ...){
+rDivEngineVarFun <- function(rdata, fooStr, pow, test.size = test.size, align.by, align.period, makeReturns, avg.vol, spot.vol.series, jump.series, intradaySeasonFun, reference.time, year.days, kernel.type, cl = NULL, ...){
   # Adjustment for careless coders
   if(hasArg(data)){ rdata <- data }
   
@@ -119,27 +119,27 @@ rDivEngineVarFun <- function(rdata, fooStr, pow, test.size = test.size, align.by
   
   if(multixts){
     if(is.null(cl)){
-      result <- apply.daily(rdata, rDivEngineVarFunBase, fooStr = fooStr, pow= pow, test.size = test.size, align.by= NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days, ...)  
+      result <- apply.daily(rdata, rDivEngineVarFunBase, fooStr = fooStr, pow= pow, test.size = test.size, align.by= NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days, kernel.type = kernel.type, ...)  
     } else {
       rdata.dates <- unique(as.Date(index(rdata)))
       rdata.list <- lapply(rdata.dates,function(x) rdata[as.character(x)])
       clusterExport(cl, c("fooStr","pow","test.size","avg.vol","intradaySeasonFun","reference.time","year.days","spot.vol.series","jump.series"), envir = environment())
       if(any(grepl("snow",search()))) {
-        res.list <- snow::parLapply(cl = cl, x = rdata.list, fun = rDivEngineVarFunBase, fooStr = fooStr, pow = pow, test.size =test.size, align.by = NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days)
+        res.list <- snow::parLapply(cl = cl, x = rdata.list, fun = rDivEngineVarFunBase, fooStr = fooStr, pow = pow, test.size =test.size, align.by = NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days, kernel.type = kernel.type)
       } else if(any(grepl("parallel",search()))){
-        res.list <- parallel::parLapply(cl = cl, X = rdata.list, fun = rDivEngineVarFunBase, fooStr = fooStr, pow = pow, test.size =test.size, align.by = NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days)
+        res.list <- parallel::parLapply(cl = cl, X = rdata.list, fun = rDivEngineVarFunBase, fooStr = fooStr, pow = pow, test.size =test.size, align.by = NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days, kernel.type = kernel.type)
       }
       result <- t(do.call(what = cbind, res.list))
       result <- xts(result, rdata.dates)
     }
     return(result)
   } else if(!multixts){
-    result <- rDivEngineVarFunBase(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, align.by = align.by, align.period = align.period, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days, ...)
+    result <- rDivEngineVarFunBase(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, align.by = align.by, align.period = align.period, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days,kernel.type = kernel.type, ...)
     return(result)
   }
 }
 
-rDivEngineVarFunBase <- function(rdata, fooStr, pow, test.size, align.by, align.period, makeReturns, avg.vol, spot.vol.series, jump.series, intradaySeasonFun, reference.time, year.days, ...){
+rDivEngineVarFunBase <- function(rdata, fooStr, pow, test.size, align.by, align.period, makeReturns, avg.vol, spot.vol.series, jump.series, intradaySeasonFun, reference.time, year.days, kernel.type, ...){
   
   if((!is.null(align.by))&&(!is.null(align.period))){
     rdata <- aggregatePrice(rdata, on=align.by, k=align.period, ...);
@@ -149,12 +149,12 @@ rDivEngineVarFunBase <- function(rdata, fooStr, pow, test.size, align.by, align.
     rdata <- tail(rdata,-1) 
   }  
   
-  result <- apply(matrix(pow),1, rDivEngineVarFoo, fooStr = fooStr, tsMat = rdata, test.size = test.size, align.by = align.by, align.period = align.period, makeReturns = FALSE, avg.vol = avg.vol, spot.var = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days , ...) 
+  result <- apply(matrix(pow),1, rDivEngineVarFoo, fooStr = fooStr, tsMat = rdata, test.size = test.size, align.by = align.by, align.period = align.period, makeReturns = FALSE, avg.vol = avg.vol, spot.var = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days, kernel.type = kernel.type, ...) 
   
   return(result)  
 }
 
-rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, spot.var, jump.series, test.size, intradaySeasonFun, reference.time, year.days, ...){
+rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, spot.var, jump.series, test.size, intradaySeasonFun, reference.time, year.days, kernel.type,  ...){
   
   eval(parse(text = paste0("fooBaseDeriv <- ",fooStr,"BaseDeriv")))
   eval(parse(text = paste0("fooBaseZDeriv <- ",fooStr,"BaseZDeriv")))
@@ -166,7 +166,7 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, spot.var, jump.series, t
   # k <- ceiling(sqrt(1/3 * nrow(tsMat)))
   k <- 2
   if(is.null(spot.var)){
-    spot.var <- spotVol(rdata = tsMat, spot.index = index(tsMat), makeReturns = FALSE, align.by = NULL, align.period = NULL, avg.vol = avg.vol, reference.time = reference.time, vol.jumping = FALSE, year.days = year.days) 
+    spot.var <- spotVol(rdata = tsMat, spot.index = index(tsMat), makeReturns = FALSE, align.by = NULL, align.period = NULL, avg.vol = avg.vol, reference.time = reference.time, vol.jumping = FALSE, year.days = year.days, kernel.type = kernel.type) 
     spot.var <- spot.var$spot[(k+1):(nrow(tsMat)-k)]
   } else {
     if(nrow(spot.var$minus) > nrow(tsMat)){

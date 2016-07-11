@@ -12,7 +12,7 @@ rDivEngine(rdata, fooStr, pow, makeReturns, align.by, align.period,
 rDivEngineInference(rdata, fooStr, pow, test.size = 0.05, align.by,
   align.period, makeReturns, reference.time, year.days = 365,
   seconds.per.day = 86400, cl = NULL, spot.vol.series = NULL,
-  jump.series = NULL, ...)
+  jump.series = NULL, kernel.type = "gaussian", ...)
 }
 \arguments{
 \item{rdata}{an \code{xts} object containing 1 price or return series.}

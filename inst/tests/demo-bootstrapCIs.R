@@ -31,7 +31,8 @@ jmp.cal <- as.POSIXct(as.POSIXct(as.Date("2016-01-01")) + 8.5*3600 + 86400 * jmp
 jmp.path <- xts(x = sim.paths$jumpSizes[[1]][,-1], order.by = jmp.cal)
 jmp.path <- jmp.path["T08:30:00/T15:00:00"]
 
-last.date <- tail(as.character(unique(as.Date(index(stock.path)))))
+last.date <- tail(unique(as.Date(index(stock.path))),1)
+last.date <- last.date-1
 
 stock.path <- stock.path[paste0("/",last.date)]
 vol.path <- vol.path[paste0("/",last.date)]
@@ -68,7 +69,7 @@ system.time(
     loc.ret <- stock.path[as.character(dt)]
     rv.boot <- tsboot(tseries = loc.ret, statistic = function(x) sqrt(252 * 24/6.75 * rCov(rdata = x, align.by = NULL, align.period = NULL, makeReturns = FALSE)), R = 1.5e3, sim = 'fixed', l = 30, orig.t = T)
     rv.ci <- boot.ci(boot.out = rv.boot, conf = 0.95)
-    return(xts(x = rv.ci$perc[,4:5,drop=FALSE], order.by = dt))
+    return(xts(x = rv.ci$basic[,4:5,drop=FALSE], order.by = dt))
     # return(xts(x = rv.ci$norm[,2:3,drop=FALSE], order.by = dt))
   }
 )
@@ -89,7 +90,7 @@ system.time(
     loc.ret <- stock.path[as.character(dt)]
     rv.boot <- tsboot(tseries = loc.ret, statistic = function(x) sqrt(252 * 24/6.75 * rCov(rdata = x, align.by = NULL, align.period = NULL, makeReturns = FALSE)), R = 1.5e3, sim = "geom", l = 6, orig.t = T)
     rv.ci <- boot.ci(boot.out = rv.boot, conf = 0.95)
-    return(xts(x = rv.ci$perc[,4:5,drop=FALSE], order.by = dt))
+    return(xts(x = rv.ci$basic[,4:5,drop=FALSE], order.by = dt))
   }
 )
 

@@ -7,7 +7,8 @@
 \usage{
 spotVol(rdata, spot.index = NULL, makeReturns, align.by, align.period,
   apply.at, apply.period, avg.vol, reference.time = "07:30:00",
-  vol.jumping = TRUE, year.days = 365, seconds.per.day = 86400, ...)
+  vol.jumping = TRUE, year.days = 365, seconds.per.day = 86400,
+  kernel.type = "gaussian", ...)
 }
 \arguments{
 \item{rdata}{an \code{xts} object containing 1 return series.}

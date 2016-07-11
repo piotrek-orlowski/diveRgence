@@ -4,9 +4,16 @@
 using namespace Rcpp;
 
 //[[Rcpp::export]]
-arma::vec spotVolBaseJump_cpp(double spotPoint, const arma::vec& rdataSq, const arma::vec& rdataAbs, const arma::vec& rdataInd, double tRange, const arma::vec& timeStampYears, double avgVol, double referenceTime, bool sepLR, double timeDelta, double yearLength){
+arma::vec spotVolBaseJump_cpp(double spotPoint, const arma::vec& rdataSq, const arma::vec& rdataAbs, const arma::vec& rdataInd, double tRange, const arma::vec& timeStampYears, double avgVol, double referenceTime, bool sepLR, double timeDelta, double yearLength, std::string kernelType = "gaussian"){
   
-  arma::vec timeKernel = kernel_epanechnikov(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5));
+  arma::vec timeKernel;
+  if(kernelType == "gaussian"){
+    timeKernel = kernel_gaussian(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5)); 
+  } else if(kernelType == "epanechnikov"){
+    timeKernel = kernel_epanechnikov(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5)); 
+  } else if(kernelType == "indicator"){
+    timeKernel = kernel_indicator(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5)); 
+  }
   
   arma::vec timeKernelMinus, timeKernelPlus;
 
