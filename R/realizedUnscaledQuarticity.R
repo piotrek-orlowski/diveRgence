@@ -92,8 +92,15 @@ rUKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
   } else if(p == 1){
     res <- 1/3*exp(tsMat + z)*tsMat*(tsMat^2 + 3*tsMat*z + 3*z^2)
   } else {
-    res <- -exp(tsMat)*(2 + (-1 + p)*z*(-2 + (-1 + p)*z))
-    res <- res + exp(p*tsMat)*(2 + (-1 + p)^2*tsMat^2 + (-1 + p)*z*(-2 + (-1 + p)*z) + 2*(-1 + p)*tsMat*(-1 + (-1 + p)*z))
+    first_z <- exp(p*z)
+    second_z <- z * first_z
+    third_z <- -z * second_z
+    fourth_z <- 1/(p*(p-1)) * z^2 * exp(p*z) + (2-4*p)/(p^2*(p-1)^2) * z *exp(p*z) + (6*p^2 - 6*p + 2)/(p^3*(p-1)^3) * exp(p*z)
+    first_x <- 1/(p*(p-1)) *(2 * tsMat * exp(p*tsMat) + p*tsMat^2*exp(p*tsMat)) + (2-4*p)/(p^2*(p-1)^2)*(exp(p*tsMat) + p*tsMat*exp(p*tsMat)) - 2*exp(tsMat)/(p-1)^3
+    second_x <- 1/(p*(p-1)) * (2 * exp(p*tsMat) + 2 * p * tsMat * exp(p*tsMat)) + 2 * exp(tsMat)/(p-1)^2
+    third_x <- exp(tsMat)/(p-1)
+    fourth_x <- p * exp(p*tsMat)
+    res <- first_z * first_x + second_z * second_x + third_z * third_x + fourth_z * fourth_x
   }
   if(.sum){
     res <- sum(res)  

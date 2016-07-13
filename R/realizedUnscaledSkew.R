@@ -106,8 +106,11 @@ rUSkewBaseZDeriv <- function(p, tsMat, .sum = FALSE){
   } else if(p == 1){
     res <- 1/2*exp(z)*(2*z + exp(tsMat)*(tsMat^2 - 2*z + 2*tsMat*z))
   } else {
-    res <- 1/(p^2*(p-1)^2) * exp(p*z)
-    res <- res * (-p^2*exp(tsMat)*(-1 + z * (p-1)) + (p-1)^2*(p*z-1) + exp(p*tsMat)*(1+p^2*(tsMat+z) - p*(2+tsMat+z)))
+    d_left_outer <- 1/(p^2*(p-1)^2) * p * exp(p*z)
+    d_right_outer <- d_left_outer / p
+    d_left_inner <- (-p^2 * exp(tsMat)*((p-1)*z-1) + (p*z-1)*(p-1)^2 + exp(p*tsMat)*(1 + p^2*(z+tsMat) - p*(z + tsMat + 2)))
+    d_right_inner <- (-p^2 * exp(tsMat)*(p-1) + p*(p-1)^2 + exp(p*tsMat)*(p^2 - p))
+    res <- d_left_outer * d_left_inner + d_right_outer * d_right_inner
   }
   if(.sum){
     res <- sum(res)  
