@@ -110,7 +110,7 @@ rDivEngineInference <- function(rdata, fooStr, pow, test.size = 0.05, align.by, 
   return(result)
 }
 
-rDivEngineVarFun <- function(rdata, fooStr, pow, test.size = test.size, align.by, align.period, makeReturns, avg.vol, spot.vol.series, jump.series, intradaySeasonFun, reference.time, year.days, kernel.type, cl = NULL, ...){
+rDivEngineVarFun <- function(rdata, fooStr, pow, test.size = test.size, align.by, align.period, makeReturns, avg.vol, spot.vol.series, jump.series, intradaySeasonFun, reference.time, year.days, kernel.type, vol.jumping = TRUE, cl = NULL, ...){
   # Adjustment for careless coders
   if(hasArg(data)){ rdata <- data }
   
@@ -119,7 +119,7 @@ rDivEngineVarFun <- function(rdata, fooStr, pow, test.size = test.size, align.by
   
   if(multixts){
     if(is.null(cl)){
-      result <- apply.daily(rdata, rDivEngineVarFunBase, fooStr = fooStr, pow= pow, test.size = test.size, align.by= NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days, kernel.type = kernel.type, ...)  
+      result <- apply.daily(rdata, rDivEngineVarFunBase, fooStr = fooStr, pow= pow, test.size = test.size, align.by= NULL, align.period = NULL, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days, kernel.type = kernel.type, vol.jumping = vol.jumping, ...)  
     } else {
       rdata.dates <- unique(as.Date(index(rdata)))
       rdata.list <- lapply(rdata.dates,function(x) rdata[as.character(x)])
@@ -134,12 +134,12 @@ rDivEngineVarFun <- function(rdata, fooStr, pow, test.size = test.size, align.by
     }
     return(result)
   } else if(!multixts){
-    result <- rDivEngineVarFunBase(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, align.by = align.by, align.period = align.period, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days,kernel.type = kernel.type, ...)
+    result <- rDivEngineVarFunBase(rdata = rdata, fooStr = fooStr, pow = pow, test.size = test.size, align.by = align.by, align.period = align.period, makeReturns = makeReturns, avg.vol = avg.vol, spot.vol.series = spot.vol.series, jump.series = jump.series, intradaySeasonFun = intradaySeasonFun, reference.time = reference.time, year.days = year.days,kernel.type = kernel.type, vol.jumping = vol.jumping, ...)
     return(result)
   }
 }
 
-rDivEngineVarFunBase <- function(rdata, fooStr, pow, test.size, align.by, align.period, makeReturns, avg.vol, spot.vol.series, jump.series, intradaySeasonFun, reference.time, year.days, kernel.type, ...){
+rDivEngineVarFunBase <- function(rdata, fooStr, pow, test.size, align.by, align.period, makeReturns, avg.vol, spot.vol.series, jump.series, intradaySeasonFun, reference.time, year.days, kernel.type, vol.jumping = TRUE, ...){
   
   if((!is.null(align.by))&&(!is.null(align.period))){
     rdata <- aggregatePrice(rdata, on=align.by, k=align.period, ...);
