@@ -228,7 +228,7 @@ rDivEngineVarFoo <- function(p, fooStr, tsMat, avg.vol, spot.var, jump.series, t
     num.reps <- 1e3/test.size  
     test.size <- c(1-test.size/2, test.size/2)
   } else {
-    num.reps <- 1e3/min(min(test.size),diff(test.size))
+    num.reps <- min(1e4,1e3/min(min(test.size),diff(test.size)))
     test.size <- rev(test.size)
   }
   
