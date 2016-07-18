@@ -49,7 +49,7 @@ rJSkewBase <- function(rdata, pow, align.by, align.period, makeReturns, intraday
   
 }
 
-divSkewFoo <- function(p, tsMat){
+divSkewFoo <- function(p, tsMat, .sum = TRUE){
   if(p == 0){
     res <- -(tsMat + 0.5*tsMat^2) + (exp(tsMat) - 1)
   } else if(p == 1){
@@ -63,11 +63,13 @@ divSkewFoo <- function(p, tsMat){
     sm.tsMat <- which(abs(tsMat) < 1e-5)
     res[sm.tsMat] <- tsMat[sm.tsMat]^3/6 + tsMat[sm.tsMat]^4/24*(1+2*p)
   }
-  res <- sum(res)
+  if(.sum){
+    res <- sum(res) 
+  }
   return(res)
 }
 
-rJSkewBaseDeriv <- function(p, tsMat, .sum = FALSE){
+rJSkewBaseDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
   if(p == 0){
     res <- expm1(tsMat) - tsMat
   } else if(p == 1){
@@ -83,7 +85,7 @@ rJSkewBaseDeriv <- function(p, tsMat, .sum = FALSE){
   return(res)
 }
 
-rJSkewBaseZDeriv <- function(p, tsMat, .sum = FALSE){
+rJSkewBaseZDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
   res <- rep(0, length(tsMat))
   if(.sum){
     res <- 0

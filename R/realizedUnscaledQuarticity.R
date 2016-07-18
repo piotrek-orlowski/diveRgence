@@ -49,7 +49,7 @@ rUKurtBase <- function(rdata, pow, align.by, align.period, makeReturns, intraday
   
 }
 
-divUKurtFoo <- function(p, tsMat){
+divUKurtFoo <- function(p, tsMat, .sum = TRUE){
   z <- c(0,head(cumsum(tsMat),-1))
   if(p == 0){ 
     res <- -2 - tsMat^3/3 - 2*z - z^2 - tsMat^2*(1 + z) + exp(tsMat)* (2 + 2*z + z^2) - tsMat * (2 + 2*z + z^2)
@@ -63,7 +63,9 @@ divUKurtFoo <- function(p, tsMat){
     # sm.tsMat <- which(abs(tsMat) < 1e-5)
     # res[sm.tsMat] <- tsMat[sm.tsMat]^3/6 + tsMat[sm.tsMat]^4/24*(1+2*p)
   }
-  res <- sum(res)
+  if(.sum){
+    res <- sum(res) 
+  }
   return(res)
 }
 
@@ -85,8 +87,8 @@ divUKurtFoo_true <- function(p, tsMat, z){
   return(res)
 }
 
-rUKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
-  z <- c(0,head(cumsum(tsMat),-1))
+rUKurtBaseDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
+  z <- c(0,head(cumTsMat,-1))
   if(p == 0){
     res <- -2 - tsMat^2 - 2*z - z^2 - 2*tsMat*(1 + z) + exp(tsMat)*(2 + 2*z + z^2)
   } else if(p == 1){
@@ -108,8 +110,8 @@ rUKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
   return(res)
 }
 
-rUKurtBaseZDeriv <- function(p, tsMat, .sum = FALSE){
-  z <- c(0,head(cumsum(tsMat),-1))
+rUKurtBaseZDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
+  z <- c(0,head(cumTsMat,-1))
   if(p == 0){
     res <- -tsMat^2 - 2*(1 + z) + 2*exp(tsMat)*(1 + z) - 2*tsMat*(1 + z)
   } else if(p == 1){

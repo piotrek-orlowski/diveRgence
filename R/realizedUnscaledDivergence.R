@@ -49,7 +49,7 @@ rUDivBase <- function(rdata, pow, align.by, align.period, makeReturns, intradayS
   return(result)
 }
 
-uDivFoo <- function(p, tsMat){
+uDivFoo <- function(p, tsMat, .sum = TRUE){
   z <- c(0,head(cumsum(tsMat),-1))
   if(p == 0){
     res <- - tsMat + (exp(tsMat) - 1)
@@ -62,12 +62,14 @@ uDivFoo <- function(p, tsMat){
     res <- res - cnst.2*(exp(tsMat) - 1)
   }
   res <- exp(p*z)*res
-  res <- sum(res)
+  if(.sum){
+    res <- sum(res) 
+  }
   return(res)
 }
 
-rUDivBaseDeriv <- function(p, tsMat, .sum = FALSE){
-  z <- c(0,head(cumsum(tsMat),-1))
+rUDivBaseDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
+  z <- c(0,head(cumTsMat,-1))
   if(p == 0){
     res <- exp(tsMat)-1
   } else if(p == 1){
@@ -83,8 +85,8 @@ rUDivBaseDeriv <- function(p, tsMat, .sum = FALSE){
   return(res)
 }
 
-rUDivBaseZDeriv <- function(p, tsMat, .sum = FALSE){
-  z <- c(0,head(cumsum(tsMat),-1))
+rUDivBaseZDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
+  z <- c(0,head(cumTsMat,-1))
   if(p == 0){
     res <- - tsMat + (exp(tsMat) - 1)
   } else if(p == 1){

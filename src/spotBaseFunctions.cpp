@@ -8,11 +8,14 @@ arma::vec spotVolBaseJump_cpp(double spotPoint, const arma::vec& rdataSq, const 
   
   arma::vec timeKernel;
   if(kernelType == "gaussian"){
-    timeKernel = kernel_gaussian(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5)); 
+    timeKernel = kernel_gaussian(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5));
+    // timeKernel = kernel_gaussian(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), 100*pow(timeDelta,2.0)); 
   } else if(kernelType == "epanechnikov"){
-    timeKernel = kernel_epanechnikov(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5)); 
+    timeKernel = kernel_epanechnikov(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5));
+    // timeKernel = kernel_epanechnikov(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), 100*pow(timeDelta,2.0)); 
   } else if(kernelType == "indicator"){
-    timeKernel = kernel_indicator(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5)); 
+    timeKernel = kernel_indicator(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), pow(timeDelta,1.5));
+    // timeKernel = kernel_indicator(timeStampYears, (spotPoint-referenceTime)/(86400.0*yearLength), 100*pow(timeDelta,2.0)); 
   }
   
   arma::vec timeKernelMinus, timeKernelPlus;

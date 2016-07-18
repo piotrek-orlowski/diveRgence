@@ -49,7 +49,7 @@ rDivBase <- function(rdata, pow, align.by, align.period, makeReturns, intradaySe
   return(result)
 }
 
-divFoo <- function(p, tsMat){
+divFoo <- function(p, tsMat, .sum = TRUE){
   if(p == 0){
     res <- - tsMat + (exp(tsMat) - 1)
   } else if(p == 1){
@@ -60,11 +60,13 @@ divFoo <- function(p, tsMat){
     res <- cnst.1 * (exp(p*tsMat) - 1)
     res <- res - cnst.2*(exp(tsMat) - 1)
   }
-  res <- sum(res)
+  if(.sum){
+    res <- sum(res) 
+  }
   return(res)
 }
 
-rDivBaseDeriv <- function(p, tsMat, .sum = FALSE){
+rDivBaseDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
   if(p == 0){
     res <- exp(tsMat)-1
   } else if(p == 1){
@@ -79,7 +81,7 @@ rDivBaseDeriv <- function(p, tsMat, .sum = FALSE){
   return(res)
 }
 
-rDivBaseZDeriv <- function(p, tsMat, .sum = FALSE){
+rDivBaseZDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
   res <- rep(0, length(tsMat))
   if(.sum){
     res <- 0

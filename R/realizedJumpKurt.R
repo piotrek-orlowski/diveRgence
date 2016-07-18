@@ -49,7 +49,7 @@ rJKurtBase <- function(rdata, pow, align.by, align.period, makeReturns, intraday
   
 }
 
-divKurtFoo <- function(p, tsMat){
+divKurtFoo <- function(p, tsMat, .sum = TRUE){
   if(p == 0){
     res <- 2*expm1(tsMat) - 2*tsMat - tsMat^2 - 1/3*tsMat^3
   } else if(p == 1){
@@ -63,11 +63,13 @@ divKurtFoo <- function(p, tsMat){
     sm.tsMat <- which(abs(tsMat) < 1e-3)
     res[sm.tsMat] <- tsMat[sm.tsMat]^4/12 + tsMat[sm.tsMat]^5/60*(1+3*p)
   }
-  res <- sum(res)
+  if(.sum){
+    res <- sum(res) 
+  }
   return(res)
 }
 
-rJKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
+rJKurtBaseDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
   if(p == 0){
     res <- 2*expm1(tsMat) - 2*tsMat - tsMat^2
   } else if(p == 1){
@@ -82,7 +84,7 @@ rJKurtBaseDeriv <- function(p, tsMat, .sum = FALSE){
   return(res)
 }
 
-rJKurtBaseZDeriv <- function(p, tsMat, .sum = FALSE){
+rJKurtBaseZDeriv <- function(p, tsMat, cumTsMat, .sum = FALSE){
   res <- rep(0, length(tsMat))
   if(.sum){
     res <- 0
